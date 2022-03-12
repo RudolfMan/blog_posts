@@ -3,13 +3,13 @@
   description: "We will explore the ways to send `SQL CASE` conditional expression to Postgres using Ecto. Aslo we will touch elixir macros and get familiar with `unquote_splicing/1`."
 }
 ---
-**TL;DR** jump straight to the implementaion of specialized variant of [`sql_case/2` macro](#sql_case/2).
+**TL;DR** jump straight to the implementation of specialized variant of [`sql_case/2` macro](#sql_case/2).
 
 [`Ecto`](https://hexdocs.pm/ecto/Ecto.html) is one of the best things happened to elixir. It provides us with tools for language integrated query and if a query is not possible to represent using standard Ecto's syntax, there is [`Ecto.Query.fragment/1`](https://hexdocs.pm/ecto/Ecto.Query.API.html#fragment/1) to send the expression to the DB.
 
 `SQL CASE` is one of those expressions that's not available by default in Ecto so let's see how we could implement it:
 
-The basic SQL syntaxis looks like:
+The basic SQL syntax looks like:
 ```sql
 CASE WHEN condition THEN result
      [WHEN ...]
@@ -17,17 +17,17 @@ CASE WHEN condition THEN result
 END
 ```
 
-Suppose the simple scenario. We have a table `movies` and, say, we would like to query the titles and types of movies based on the lenght requirements set by American Film Institute and British Film Institute.
+Suppose the simple scenario. We have a table `movies` and, say, we would like to query the titles and types of movies based on the length requirements set by American Film Institute and British Film Institute.
 ```table
  title         | length
 ---------------+--------
  The Big Shave |      6
  Goodfellas    |    146
 ```
-According to those organisations, motion pictures with running time less than 40 minutes are considered short films otherwise it can be considered as feture-length film.
+According to those organizations, motion pictures with running time less than 40 minutes are considered short films otherwise it can be considered as feature-length film.
 ```sql
 SELECT title,
-       CASE WHEN lenght > 40 THEN 'feature film'
+       CASE WHEN length > 40 THEN 'feature film'
             ELSE 'short film'
        END
     FROM movies;
@@ -45,7 +45,7 @@ from(m in "movies",
             ELSE 'short film'
        END
        """,
-       m.lenght
+       m.length
      )}
 )
 ```
@@ -54,7 +54,7 @@ Pretty straight forward, isn't it?
 
 However, later we learn that the Screen Actors Guild has a different requirement. Instead of 40 minutes, they require the film to be at least 60 minutes long.
 
-To be able to satify all those organisations we can make the query a little bit more dynamic. Both conditional expression and values could also be bound on fragment building, as:
+To be able to satisfy all those organizations we can make the query a little bit more dynamic. Both conditional expression and values could also be bound on fragment building, as:
 ```elixir
 required_length = 60
 
@@ -64,7 +64,7 @@ fragment(
        ELSE ?
   END
   """,
-  m.lenght > ^required_length,
+  m.length > ^required_length,
   "feature film",
   "short film"
 )
@@ -172,7 +172,7 @@ The signature for fragment is
 ```elixir
 fragment(template, [arg1, [arg2, [arg3, ..]]])
 ```
-So at compile time we need to know the number of arguments to bind. Luckily special form [`unquote_splicing/1`](https://hexdocs.pm/elixir/Kernel.SpecialForms.html#unquote_splicing/1) can help us to acieve that:
+So at compile time we need to know the number of arguments to bind. Luckily special form [`unquote_splicing/1`](https://hexdocs.pm/elixir/Kernel.SpecialForms.html#unquote_splicing/1) can help us to achieve that:
 ```elixir
 quote do
   fragment(unquote(template), unquote_splicing(args))
@@ -207,7 +207,7 @@ sql_case(
   when: rating == "NC-17", then: "Clearly Adult",
 )
 ```
-_Notice, how that `SQL CASE` expression looks like `cond do` in elixir._  However, each conditional expression is just comparing `rating` with the symbol. In `SQL` for these types of a situation there is a specialized variant of the general form:
+_Notice how that `SQL CASE` expression looks like `cond do` in elixir._  However, each conditional expression is just comparing `rating` with the symbol. In `SQL` for these types of a situation there is a specialized variant of the general form:
 ```sql
 CASE expression
     WHEN value THEN result
@@ -268,7 +268,7 @@ sql_case(rating,
   then: "Clearly Adult",
 )
 ```
-Which, is less readable than I wanted. However, if we had pairs of `when-then` wrapped into tuples or lists formatter would have left them on the same line:
+Which is less readable than I wanted. However, if we had pairs of `when-then` wrapped into tuples or lists formatter would have left them on the same line:
 
 ```elixir
 sql_case(m.rating, [
@@ -347,4 +347,4 @@ Awesome! Now this macro can also be used in combination with other functions and
 ```
 
 -----
-PostgreSQL is truly ["The World's Most Advanced Open Source Relational Database"](https://www.postgresql.org/). For more ideas and inspiration also check out this amaizing blog post ["I can do all things through PostgreSQL"](https://supersimple.org/blog/all-things) by [Todd Resudek](https://twitter.com/sprsmpl) _(if you haven't yet)_.
+PostgreSQL is truly ["The World's Most Advanced Open Source Relational Database"](https://www.postgresql.org/). For more ideas and inspiration also check out this amazing blog post ["I can do all things through PostgreSQL"](https://supersimple.org/blog/all-things) by [Todd Resudek](https://twitter.com/sprsmpl) _(if you haven't yet)_.
