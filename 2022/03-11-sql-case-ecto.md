@@ -101,7 +101,7 @@ import CustomFunctions
 
 from(m in "movies",
   select:
-    {m.title, case_when(m.lenght > 60, "feature film", "short film")}
+    {m.title, case_when(m.length > 60, "feature film", "short film")}
 )
 ```
 
