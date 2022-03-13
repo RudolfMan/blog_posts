@@ -207,7 +207,7 @@ sql_case(
   when: rating == "NC-17", then: "Clearly Adult",
 )
 ```
-_Notice how that `SQL CASE` expression looks like `cond do` in elixir._  However, each conditional expression is just comparing `rating` with the symbol. In `SQL` for these types of a situation there is a specialized variant of the general form:
+_Notice how that `SQL CASE` expression looks like `cond do` in elixir._  Each conditional expression is just comparing `rating` with the symbol. In `SQL` for these types of a situation there is a specialized variant of the general form:
 ```sql
 CASE expression
     WHEN value THEN result
@@ -255,7 +255,7 @@ sql_case(rating,
 
 ### Formatting
 
-However, once we run `mix format` - it quickly transforms the code into:
+Once we run `mix format` - it quickly transforms the code into:
 ```elixir
 sql_case(rating,
   when: "R",
@@ -279,7 +279,7 @@ sql_case(m.rating, [
 ])
 ```
 
-We could flatten this list before building the template sql query string. However, reducing over this type of a list could provide us with some "validation" that every `:when` is followed by `:then`. Otherwise, it will not compile!
+While we could flatten this list before building the template sql query string, reducing over this type of a list could provide us with some "validation" that every `:when` is followed by `:then`. Otherwise, it will not compile!
 ```elixir
 template =
   Enum.reduce(params, "CASE ? ", fn
