@@ -347,4 +347,4 @@ Awesome! Now this macro can also be used in combination with other functions and
 ```
 
 -----
-PostgreSQL is truly ["The World's Most Advanced Open Source Relational Database"](https://www.postgresql.org/). For more ideas and inspiration also check out this amazing blog post ["I can do all things through PostgreSQL"](https://supersimple.org/blog/all-things) by [Todd Resudek](https://twitter.com/sprsmpl) _(if you haven't yet)_.
+For more ideas and inspiration also check out this amazing blog post ["I can do all things through PostgreSQL"](https://supersimple.org/blog/all-things) by [Todd Resudek](https://twitter.com/sprsmpl) _(if you haven't yet)_.
