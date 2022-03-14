@@ -1,6 +1,6 @@
 %{
   title: "SQL CASE clause with Ecto",
-  description: "We will explore the ways to send `SQL CASE` conditional expression to Postgres using Ecto. Aslo we will touch elixir macros and get familiar with `unquote_splicing/1`."
+  description: "We will explore the ways to send `SQL CASE` conditional expression to Postgres using Ecto. Also we will touch elixir macros and get familiar with `unquote_splicing/1`."
 }
 ---
 **TL;DR** jump straight to the implementation of specialized variant of [`sql_case/2` macro](#sql_case/2).
