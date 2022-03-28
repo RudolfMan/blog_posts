@@ -145,9 +145,10 @@ defmodule MyApp.HumanizedWeatherTest do
 end
 ```
 
-_By the way, notice how aliased `MyApp.HumanizedWeather` in the test file allows us to use the alias in the doctest example._
+> _By the way, notice how `alias MyApp.HumanizedWeather` in the test file allows us to call `HumanizedWeather.display_temp/1` in the doctest example without common `MyApp` namespace._
 
-Let's say we are satisfied with the test example and now we want to describe the other function `display_humidity/1`
+### Separate tests with isolated contexts
+Let's say we are satisfied with the test example and now we want to document the other function in the same module: `display_humidity/1`
 
 ```elixir
 defmodule MyApp.HumanizedWeather do
@@ -246,4 +247,4 @@ Voilà! 🎉
 
 ### Conclusion
 
-To sum up, in order to "doctest" functions that have side effects we need to "setup" a context around testing examples and, if needed, isolate via [`describe`](https://hexdocs.pm/ex_unit/ExUnit.Case.html#describe/2) macro and specify the functions to run the `doctest` using options `:only` and/or `:except`.
+To sum up, in order to "doctest" functions that have side effects we need to "setup" a context around testing examples and, if needed, isolate via `describe` macro and specify the functions to run the `doctest` using options `:only` and/or `:except`.
