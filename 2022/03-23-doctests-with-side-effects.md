@@ -230,6 +230,8 @@ Voilà! 🎉
 
 <span id="conclusion"></span>
 
+_The full gists of rsulting modules available [here](https://gist.github.com/RudolfMan/2a1c46692a99c9d6adf6f9db8a2592f3)._
+
 > #### Note {: .note}
 >
 > There is a bug in Elixir v1.13.3 and older versions in `doctest` macro. `ExUnit` will just ignore it when no function from the list of given to the option `:only` is found. So if, say, later we rename the function but don't update it in the test file - the test case will still pass (though the number of successful doctests will be smaller)
