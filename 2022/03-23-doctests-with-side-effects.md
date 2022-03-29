@@ -185,9 +185,7 @@ defmodule MyApp.HumanizedWeatherTest do
       # ...
     end)
 
-    expect(MyApp.MockWeatherAPI, :humidity, fn
-      {_lat, _long} -> {:ok, 60}
-    end)
+    expect(MyApp.MockWeatherAPI, :humidity, fn {_lat, _long} -> {:ok, 60} end)
 
     :ok
   end
@@ -220,9 +218,7 @@ defmodule MyApp.HumanizedWeatherTest do
     doctest MyApp.HumanizedWeather, only: [display_humidity: 1]
 
     setup do
-      expect(MyApp.MockWeatherAPI, :humidity, fn
-        {_lat, _long} -> {:ok, 60}
-      end)
+      expect(MyApp.MockWeatherAPI, :humidity, fn {_lat, _long} -> {:ok, 60} end)
 
       :ok
     end
