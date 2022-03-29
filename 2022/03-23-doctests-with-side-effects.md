@@ -1,6 +1,6 @@
 %{
-  title: "Doctests with side effects",
-  description: "How to write doctests for public functions that have side effects."
+  title: "Doctest functions with side effects",
+  description: "Write doctests for public functions that have side effects in elixir."
 }
 ---
 
@@ -230,7 +230,7 @@ Voilà! 🎉
 
 <span id="conclusion"></span>
 
-_The full gists of rsulting modules available [here](https://gist.github.com/RudolfMan/2a1c46692a99c9d6adf6f9db8a2592f3)._
+_The full gists of resulting modules available [here](https://gist.github.com/RudolfMan/2a1c46692a99c9d6adf6f9db8a2592f3)._
 
 > #### Note {: .note}
 >
