@@ -43,7 +43,7 @@ And let's change the generated form input box from type "number" to "select". In
 <%= select f, :status, Ecto.Enum.values(Orders.Order, :status), prompt: "Order status" %>
 <%= error_tag f, :status %>
 ```
-[See diffs.]()
+[See diffs.](https://github.com/RudolfMan/acme_liveview_pubsub_opentelemetry/commit/17ad5cbc0ff68040b0d8f55fb70483dafe909ce3)
 
 Now let's add some minimal `PubSub` to broadcast the updates from Orders context. Change function `update_order/2` in "/lib/acme/orders.ex" to:
 ```elixir
@@ -68,7 +68,7 @@ def handle_info({:order_updated, order}, socket) do
   {:noreply, assign(socket, :order, order)}
 end
 ```
-[See diffs.]()
+[See diffs.](https://github.com/RudolfMan/acme_liveview_pubsub_opentelemetry/commit/3471f617a91a9a1a5a6c04595b8579a8c7532130)
 
 Now when the order is updated all users connected to `OrderLive.Show` will see the changes.
 
@@ -129,7 +129,7 @@ config :opentelemetry, :processors,
   }
 ```
 
-[See diffs.]()
+[See diffs.](https://github.com/RudolfMan/acme_liveview_pubsub_opentelemetry/commit/e83443875926b1a79a4c0af406ea5db1ff3e28d8)
 
 Now let's create traces.
 
@@ -158,7 +158,7 @@ end
 ```
 For the purpose of the example we pretend that each viewer-user is represented by its live_view pid. We add `:user` attribute to differentiate between spans created for each user.
 
-[See diffs.]()
+[See diffs.](https://github.com/RudolfMan/acme_liveview_pubsub_opentelemetry/commit/efb4cea542578c8e32fd6d6fcb4ebe47b0bb0446)
 
 Set the env variable `OTEL_SERVICE_NAME` and start the server like:
 ```shell
@@ -197,7 +197,7 @@ And in the `OrderLive.Show.handle_info/2` set the span context:
     end
   end
 ```
-[See diffs.]()
+[See diffs.](https://github.com/RudolfMan/acme_liveview_pubsub_opentelemetry/commit/8f26d9687d56ec7a308c596b7520cf075a2fe43b)
 
 Now when we trigger broadcast, a single trace with multiple spans occurs in Zipkin UI.
 
@@ -285,7 +285,7 @@ defmodule AcmeWeb.OrderLive.Show do
   ...
 end
 ```
-[See diffs.]()
+[See diffs.](https://github.com/RudolfMan/acme_liveview_pubsub_opentelemetry/commit/bb4b16f56ac8b1db84d42c5757754f44a7110e3c)
 
 Much cleaner, isn't it? However, some more information about what module causes N+1 and where broadcast was made from would be helpful to find out the source of the problem.
 
@@ -355,7 +355,7 @@ defmodule Acme.PubSub do
   ...
 end
 ```
-[See diffs.]()
+[See diffs.](https://github.com/RudolfMan/acme_liveview_pubsub_opentelemetry/commit/0bd9edbf5dae1c3e9774f48ebfde29407dd9bb2d)
 
 ![N+1 problem Phoenix LiveView PubSub OpenTelemetry Trace With Attributes](/images/zipkin_n_1_with_attrs.png)
 
