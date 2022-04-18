@@ -361,4 +361,8 @@ end
 
 Voilà! 🎉
 
+### Praemonitus praemunitus!
+
+Now, since we are aware of the issue, we can think of moving the expensive operation to context, to be done prior to broadcasting, and either include into broadcasted message or, if only one type of a subscriber requires it, broadcast in a separate topic.
+
 Thank you for reading!
