@@ -3,9 +3,13 @@
   description: "Phoenix LiveView is awesome! Accompanied with Phoenix PubSub it provides the superpower for building interactive real-time UX. But \"with great power comes great responsibility\". In this article we'll take a look at the problem and how to detect it with OpenTelemetry."
 }
 ---
-Lately I've been playing more with [Phoenix LiveView](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html) and [Surface-UI](https://surface-ui.org). I enjoy building rich UI with almost no custom JS and getting more used to thinking differently about interactivity, when the state is pushed to the user from the Back-End not upon the request from the client, but upon the data update. I noticed a potential place where some sort of a N+1 problem, that I haven't dealt with before, could appear if developer is not careful (as with any types of N+1 problems).
+> #### TL:DR {: .note}
+>
+> The problem may occur when each PubSub subscriber does an expensive operation based on payload once an event is received that could have been done prior to broadcasting the message. Instrumentation with tracing telemetry can help to detect those.
 
-During the development of the LiveView UI, to quickly test the whole result sometimes I just open 2 browser windows on the same view, change the data and see the broadcasted message pushed down to clients that didn't interact with UI but receive an update. And that's when the hidden problem can occur.
+Lately I've been playing more with [Phoenix LiveView](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html) and [Surface-UI](https://surface-ui.org). I enjoy building rich UI with almost no custom JS and getting more used to thinking differently about interactivity, when the state is pushed to the user from the Back-End not upon the request from the client, but upon the data update. I noticed a potential place where some sort of a N+1 problem, that I haven't dealt with before, could appear if the developer is not careful (as with any types of N+1 problems).
+
+During the development of the LiveView UI, to quickly test the whole result, sometimes I just open 2 browser windows on the same view, change the data and see the broadcasted message pushed down to clients that didn't interact with the UI but receive an update. And that's when the hidden problem can occur.
 
 ### A sample app with LiveView and PubSub
 
@@ -19,7 +23,7 @@ and generate "Orders" context.
 ```shell
 $ mix phx.gen.live Orders Order orders account_id:integer status:integer
 ```
-That task would generate for us a context with liveview to do minimal CRUD operations. Notice that status is an `:integer`. We want to use `Ecto.Enum` to map status code to the "name". Change the field type in the schema definition in "lib/acme/orders/order.ex"
+That task would generate for us a context with liveview to do minimal CRUD operations. Notice that status is an `:integer`. We want to use `Ecto.Enum` to map the status code to the "name". Change the field type in the schema definition in "lib/acme/orders/order.ex"
 
 ```elixir
 ...
@@ -66,7 +70,7 @@ end
 ```
 [See diffs.]()
 
-Now when order is updated all users connected to `OrderLive.Show` will see the changes.
+Now when the order is updated all users connected to `OrderLive.Show` will see the changes.
 
 ### The tricky part.
 
@@ -74,9 +78,9 @@ It's important to keep in mind that LiveView spawns an erlang process for each c
 
 Therefore, since each of them receive the update, `handle_info/2` callback performs individually for each client. Hence, we should avoid any expensive operation, such as DB calls, remote service calls etc. in that callback.
 
-Just don't do anything expensive in there. Sounds simple, right? However, in practice in larger system when requirements change and multiple modules are already subscribed to particular updates - some of them eventually might require some extra info or side effects when update happens.
+Just don't do anything expensive in there. Sounds simple, right? However, in practice in larger systems when requirements change and multiple modules are already subscribed to particular updates - some of them eventually might require some extra info or side effects when update happens.
 
-For example, imagine that in the "ACME" a new requirement, if order is shipped - we want to load and show the information about the sipping agency that takes care of the particular delivery. And there could be a temptation to add that code to liveview, because on first glance it seems like we just want to "show that info to user".
+For example, imagine that in the "ACME" a new requirement, if an order is shipped - we want to load and show the information about the shipping agency that takes care of the particular delivery. And there could be a temptation to add that code to liveview, because on first glance it seems like we just want to "show that info to viewers".
 ```elixir
 def handle_info({:order_updated, order}, socket) do
   order = preload_shipping_agency(order)
@@ -89,7 +93,7 @@ It might work fine and when testing locally. We won't notice any issue, but it w
 
 ### How to detect the problem?
 
-Overall it's a good practice to have the project well instrumented and setup with observability. Similar to any kind of N+1 problems, this can be spotted relatively eacily with tracing.
+Overall it's a good practice to have the project well instrumented and setup with observability. Similar to any kind of N+1 problems, this can be spotted relatively easily with tracing.
 
 Let's see how we can instrument it with [OpenTelemetry](https://opentelemetry.io/) and, for, at least, local development, observe traces in [OpenZipkin](https://zipkin.io/).
 
@@ -97,7 +101,7 @@ In a separate terminal tab let's start zipkin server:
 ```shell
 $ docker run -d -p 9411:9411 openzipkin/zipkin
 ```
-Now let's define required depenedencies in "mix.exs":
+Now let's define required dependencies in "mix.exs":
 ```elixir
 defp deps do
   [
@@ -152,7 +156,7 @@ def handle_info({:order_updated, order}, socket) do
   end
 end
 ```
-For the purpose of the example we pretend that each viewer-user is represented by its live_view pid. We add `:user` attribute to differetiate between spans created for each user.
+For the purpose of the example we pretend that each viewer-user is represented by its live_view pid. We add `:user` attribute to differentiate between spans created for each user.
 
 [See diffs.]()
 
@@ -163,7 +167,7 @@ OTEL_SERVICE_NAME=acme iex -S mix phx.server
 
 Now if we try to trigger a broadcast to multiple connected windows - we should see in Zipkin UI multiple spans created.
 
-However, as you notice, spans they are not the part of the same trace, because the span context by default is local for the erlang process, while, as mentioned earlier, each LiveView connection lives in its own process. In order to overcome this we could start a span when update happens and pass its context as part of the broadcasted event message. In `Acme.Orders` update `update_order/2` to be like:
+However, as you notice, spans are not part of the same trace, because the span context by default is local for the erlang process, while, as mentioned earlier, each LiveView connection lives in its own process. In order to overcome this we could start a span when an update happens, and pass its context as part of the broadcasted event message. In `Acme.Orders` update `update_order/2` to be like:
 ```elixir
 def update_order(%Order{} = order, attrs) do
   OpenTelemetry.Tracer.with_span "orders:update_order" do
@@ -195,7 +199,7 @@ And in the `OrderLive.Show.handle_info/2` set the span context:
 ```
 [See diffs.]()
 
-Now when we trigger broadcast, single trace with multiple spans occurs in Zipkin UI.
+Now when we trigger broadcast, a single trace with multiple spans occurs in Zipkin UI.
 
 ![N+1 problem Phoenix LiveView PubSub OpenTelemetry](/images/zipkin_n_1.png)
 
@@ -319,7 +323,7 @@ end
 
 This macro `broadcast/3` gets the current function name from where it's used, and calls `Acme.PubSub.broadcast_from_function/3` which does the same as the previous `broadcast/2` function did but also sets the `:broadcaster` attribute.
 
-Becasue `Acme.PubSub.broadcast/2` now is a macro we just need to `require` the `Acme.PubSub` in `Acme.Orders` before using it:
+Because `Acme.PubSub.broadcast/2` now is a macro we just need to `require` the `Acme.PubSub` in `Acme.Orders` before using it:
 
 ```elixir
 defmodule Acme.Orders do
@@ -329,7 +333,7 @@ defmodule Acme.Orders do
 end
 ```
 
-Similarly we could add info about module that handles the broadcasted event. Let's add a span with `:handler` attribute to injecting `handle_info/2` that would suggest the name of the handler process:
+Similarly we could add info about the module that handles the broadcasted event. Let's add a span with `:handler` attribute to injecting `handle_info/2` that would suggest the name of the handler process:
 
 ```elixir
 defmodule Acme.PubSub do
